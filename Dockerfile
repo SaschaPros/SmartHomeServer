@@ -1,15 +1,8 @@
-FROM node:18
-
-# Create app directory
-WORKDIR /usr/src/app
-
-# Install app dependencies
+FROM node:latest
+WORKDIR /app
 COPY package*.json ./
-
 RUN npm install
-# If you are building your code production
-# RUN npm ci --omit=dev
-
+COPY . .
+RUN npm run build
 EXPOSE 3000
-
-CMD [ "node", "index.js" ]
+CMD ["npm","start"]

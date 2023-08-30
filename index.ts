@@ -5,8 +5,7 @@ const app = express();
 
 app.get('/api/electricitySwitchStatus', async (req, res) => {
     const negative = await isPriceNegative();
-    console.log(negative)
-
+    console.log(`Electricity price requested. Responding with ${negative}`);
     res.send(negative);
 });
 

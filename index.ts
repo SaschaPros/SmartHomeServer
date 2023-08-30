@@ -5,8 +5,9 @@ const app = express();
 
 app.get('/api/electricitySwitchStatus', async (req, res) => {
     const negative = await isPriceNegative();
-    console.log(`Electricity price requested. Responding with ${negative}`);
-    res.send(negative);
+    const status = negative ? "1" : "0";
+    console.log(`Electricity price requested. Responding with ${status}`);
+    res.send(status);
 });
 
 const port = process.env.PORT || 3000;

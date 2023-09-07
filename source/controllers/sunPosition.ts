@@ -8,11 +8,22 @@ export function isExposed(query: any) {
     const latitude = getValidValue(query.latitude, -90, 90, latitudeFallback, "Latitude");
     const longitude = getValidValue(query.longitude, -180, 180, longitudeFallback, "Longitude");
 
+    const minAzimuthRad = convertDegreeToRadian(query.minAzimuth);
+    const maxAzimuthRad = convertDegreeToRadian(query.maxAzimuth);
+    const minAltitudeRad = convertDegreeToRadian(query.minAltitude);
+    const maxAltitudeRad = convertDegreeToRadian(query.maxAltitude);
+
     const currentSunPosition = SunCalc.getPosition(new Date(), latitude, longitude);
-    const azimuthExposed = isInRange(currentSunPosition.azimuth, query.minAzimuth, query.maxAzimuth);
-    const altitudeExposed = isInRange(currentSunPosition.altitude, query.minAltitude, query.maxAltitude);
+    const azimuthExposed = isInRange(currentSunPosition.azimuth, minAzimuthRad, maxAzimuthRad);
+    const altitudeExposed = isInRange(currentSunPosition.altitude, minAltitudeRad, maxAltitudeRad);
     const response = formatResponse(azimuthExposed && altitudeExposed);
 
+    console.log(JSON.stringify({
+        minAzimuthRad: minAzimuthRad,
+        maxAzimuthRad: maxAzimuthRad,
+        minAltitudeRad: minAltitudeRad,
+        maxAltitudeRad: maxAltitudeRad
+    }));
     console.log(`Sun exposure requested for parameters ${JSON.stringify(query)}. Responding with ${response}`)
 
     return response;
@@ -25,4 +36,8 @@ function getValidValue(value: any, min: number, max: number, fallback: number, n
         console.log(`${name} "${value}" is not valid. Using fallback data`);
         return fallback;
     }
+}
+
+function convertDegreeToRadian(degrees: number) {
+    return degrees % 360 * Math.PI / 180;
 }

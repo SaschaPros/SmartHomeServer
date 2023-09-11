@@ -1,23 +1,24 @@
 export function checkSunPositionParameters(query: any): string {
-    const minAzimuth = query.minAzimuth;
-    const maxAzimuth = query.maxAzimuth;
-    const minAltitude = query.minAltitude;
-    const maxAltitude = query.maxAltitude;
-
     let errorMessage = "";
 
-    errorMessage += checkNumericParameter(minAzimuth, "minAzimuth");
-    errorMessage += checkNumericParameter(maxAzimuth, "maxAzimuth");
-    errorMessage += checkNumericParameter(minAltitude, "minAltitude");
-    errorMessage += checkNumericParameter(maxAltitude, "maxAltitude");
+    errorMessage += checkNumericParameterAvailable(query.minAzimuth, "minAzimuth");
+    errorMessage += checkNumericParameterAvailable(query.maxAzimuth, "maxAzimuth");
+    errorMessage += checkNumericParameter(query.minAltitude, "minAltitude");
+    errorMessage += checkNumericParameter(query.maxAltitude, "maxAltitude");
 
     return errorMessage.trim();
 }
 
-function checkNumericParameter(param: any, paramName: string): string {
+function checkNumericParameterAvailable(param: any, paramName: string): string {
     if (!param) {
         return `${paramName} missing `;
-    } else if (!isNumeric(param)) {
+    } else {
+        return checkNumericParameter(param, paramName);
+    }
+}
+
+function checkNumericParameter(param: any, paramName: string): string {
+    if (param && !isNumeric(param)) {
         return `${paramName} is not a number `;
     }
     return "";

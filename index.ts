@@ -1,12 +1,18 @@
 import express from "express";
 import { isPriceNegative } from "./source/controllers/electricity";
 import { isExposed } from "./source/controllers/sunPosition";
-import { checkSunPositionParameters } from "./source/utils";
+import { checkNumericParameter, checkSunPositionParameters } from "./source/utils";
 
 const app = express();
 
-app.get('/api/electricityPrice', async (_req, res) => {
-    res.send(await isPriceNegative());
+app.get('/api/electricityPrice', async (req, res) => {
+    const errorMessage = checkNumericParameter(req.query.additionalAmount, "additionalAmount")
+    if (errorMessage) {
+        console.log(`Parameter invalid, responding with HTTP 500. Error: ${errorMessage}`);
+        res.status(500).send(errorMessage);
+    } else {
+        res.send(await isPriceNegative(req.query.additionalAmount));
+    }
 });
 
 app.get('/api/isExposedToSun', async (req, res) => {
@@ -17,12 +23,6 @@ app.get('/api/isExposedToSun', async (req, res) => {
     } else {
         res.send(isExposed(req.query));
     }
-})
-
-app.get('/api/overview', async (_req, res) => {
-    res.status(200).send({
-        electricityPriceNegative: await isPriceNegative()
-    })
 })
 
 const port = process.env.PORT || 3000;

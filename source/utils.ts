@@ -17,7 +17,7 @@ function checkNumericParameterAvailable(param: any, paramName: string): string {
     }
 }
 
-function checkNumericParameter(param: any, paramName: string): string {
+export function checkNumericParameter(param: any, paramName: string): string {
     if (param && !isNumeric(param)) {
         return `${paramName} is not a number `;
     }

@@ -6,26 +6,28 @@ const fifteenMinutes = 15 * 60 * 1000;
 var price: ElectricityPrice;
 var cacheDate: Date;
 
-export async function isPriceNegative(additionalAmount: number): Promise<string> {
-    let now = +new Date();
+export async function isPriceNegative(additionalAmount: any): Promise<string> {
+    let now = new Date();
     const prices = await getElectricityPrices();
     let actualPrice = prices.data.find(element => {
-        let diff = now - +element.date;
-        diff > 0 && diff <= fifteenMinutes;
+        let diff = +now - +new Date(element.date);
+        return diff > 0 && diff <= fifteenMinutes;
     });
 
     let isNegative: boolean;
     if (actualPrice) {
         if (additionalAmount) {
-            actualPrice.value += additionalAmount;
+            console.log(`Additional amount of ${additionalAmount} included.`);
+            isNegative = +actualPrice.value + +additionalAmount < 0;
+        } else {
+            isNegative = actualPrice.value < 0;
         }
-        isNegative = actualPrice.value < 0;
     } else {
         isNegative = false;
     }
 
     const status = formatResponse(isNegative);
-    console.log(`Electricity price requested. Price is at ${actualPrice?.value}. Responding with ${status}`);
+    console.log(`Electricity price requested. Price is at ${actualPrice?.date} at ${actualPrice?.value} ct/kWh. Responding with ${status}`);
     return status;
 }
 

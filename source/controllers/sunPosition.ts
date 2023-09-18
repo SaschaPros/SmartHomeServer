@@ -1,6 +1,6 @@
 import { formatResponse, isInRange, isNumeric } from "../utils";
 
-const SunCalc = require('suncalc');
+const SunCalc = require('suncalc3');
 const latitudeFallback = 48.6586252;
 const longitudeFallback = 16.2444244;
 const minAltitudeDefault = 0;
@@ -14,31 +14,23 @@ export function isExposed(query: any) {
     const minAltitude = query.minAltitude ? query.minAltitude : minAltitudeDefault;
     const maxAltitude = query.maxAltitude ? query.maxAltitude : maxAltitudeDefault;
 
-    const minAzimuthRad = convertDegreeToRadian(query.minAzimuth);
-    const maxAzimuthRad = convertDegreeToRadian(query.maxAzimuth);
-    const minAltitudeRad = convertDegreeToRadian(minAltitude);
-    const maxAltitudeRad = convertDegreeToRadian(maxAltitude);
-
     const params = JSON.stringify({
         latitude: latitude,
         longitude: longitude,
         minAzimuth: query.minAzimuth,
-        minAzimuthRad: minAzimuthRad,
         maxAzimuth: query.maxAzimuth,
-        maxAzimuthRad: maxAzimuthRad,
         minAltitude: minAltitude,
-        minAltitudeRad: minAltitudeRad,
         maxAltitude: maxAltitude,
-        maxAltitudeRad: maxAltitudeRad
     });
     console.log(`Using ${params} for calculation`);
 
     const currentSunPosition = SunCalc.getPosition(new Date(), latitude, longitude);
-    const azimuthExposed = isInRange(currentSunPosition.azimuth, minAzimuthRad, maxAzimuthRad);
-    const altitudeExposed = isInRange(currentSunPosition.altitude, minAltitudeRad, maxAltitudeRad);
+    const azimuthExposed = isAngleInRange(currentSunPosition.azimuthDegrees, query.minAzimuth, query.maxAzimuth);
+    const altitudeExposed = isAngleInRange(currentSunPosition.altitudeDegrees, minAltitude, maxAltitude);
+
     const response = formatResponse(azimuthExposed && altitudeExposed);
 
-    console.log(`Responding with ${response}`)
+    console.log(`Responding with ${response} (Azimuth exposed: ${azimuthExposed}, Altitude exposed: ${altitudeExposed})`);
 
     return response;
 }
@@ -51,6 +43,10 @@ function getValidValue(value: any, min: number, max: number, fallback: number, n
     }
 }
 
-function convertDegreeToRadian(degrees: number) {
-    return degrees % 360 * Math.PI / 180;
+function isAngleInRange(value: number, min: number, max: number): boolean {
+    if (min <= max) {
+        return value >= min && value <= max;
+    } else {
+        return value >= min || value <= max;
+    }
 }

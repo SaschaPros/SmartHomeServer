@@ -7,7 +7,7 @@ var price: ElectricityPrice;
 var cacheDate: Date;
 
 export async function isPriceNegative(additionalAmount: any): Promise<string> {
-    let now = new Date();
+    let now = +new Date();
     const prices = await getElectricityPrices();
     let actualPrice = prices.data.find(element => {
         let diff = +now - +new Date(element.date);

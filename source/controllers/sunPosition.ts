@@ -1,5 +1,5 @@
 import { formatResponse, isInRange, isNumeric } from "../utils";
-import GeoMag from 'geomag';
+import * as geomag from 'geomag';
 
 const SunCalc = require('suncalc3');
 
@@ -58,7 +58,7 @@ function isAngleInRange(value: number, min: number, max: number): boolean {
 }
 
 function correctAngle(value: number, latitude: number, longitude: number): number {
-    const currentDeclination: number = GeoMag.field(latitude, longitude).declination;
+    const currentDeclination: number = geomag.field(latitude, longitude).declination;
     console.log(`Calculated declination: ${currentDeclination}`);
     return +value + +currentDeclination;
 }

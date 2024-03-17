@@ -3,8 +3,8 @@ import * as geomag from 'geomag';
 
 const SunCalc = require('suncalc3');
 
-const latitudeFallback = 48.6586252;
-const longitudeFallback = 16.2444244;
+const latitudeFallback = 0;
+const longitudeFallback = 0;
 const minAltitudeDefault = 0;
 const maxAltitudeDefault = 90;
 

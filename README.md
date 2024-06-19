@@ -44,8 +44,8 @@ The API used for fetching provides prices of the EPEX Spot market for **Austria*
 ##### Example cURL
 
 > ```javascript
->  curl 'http://smarthome.local:3000/api/electricityPrice'
->  curl 'http://smarthome.local:3000/api/electricityPrice?additionalAmount=123'
+>  curl 'http://localhost:3000/api/electricityPrice'
+>  curl 'http://localhost:3000/api/electricityPrice?additionalAmount=123'
 > ```
 
 ### Check if given coordinates are exposed by the sun
@@ -81,7 +81,7 @@ GitHub: https://github.com/hypnos3/suncalc3
 ##### Example cURL
 
 > ```javascript
->  curl 'http://smarthome.local:3000/api/isExposedToSun?minAzimuth=225&maxAzimuth=40'
->  curl 'http://smarthome.local:3000/api/isExposedToSun?minAzimuth=225&maxAzimuth=40&minAltitude=10'
->  curl 'http://smarthome.local:3000/api/isExposedToSun?latitude=48.0676871028563&longitude=12.862135153533522&minAzimuth=225&maxAzimuth=40&minAltitude=10&maxAltitude=80'
+>  curl 'http://localhost:3000/api/isExposedToSun?minAzimuth=225&maxAzimuth=40'
+>  curl 'http://localhost:3000/api/isExposedToSun?minAzimuth=225&maxAzimuth=40&minAltitude=10'
+>  curl 'http://localhost:3000/api/isExposedToSun?latitude=48.0676871028563&longitude=12.862135153533522&minAzimuth=225&maxAzimuth=40&minAltitude=10&maxAltitude=80'
 > ```

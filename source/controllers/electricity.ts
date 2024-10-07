@@ -3,8 +3,8 @@ import { formatResponse } from "../utils";
 const oneDay = 60 * 60 * 24 * 1000;
 const fifteenMinutes = 15 * 60 * 1000;
 
-var price: ElectricityPrice;
-var cacheDate: Date;
+let price: ElectricityPrice;
+let cacheDate: Date;
 
 export async function isPriceNegative(additionalAmount: any): Promise<string> {
     let now = +new Date();
@@ -32,7 +32,7 @@ export async function isPriceNegative(additionalAmount: any): Promise<string> {
 }
 
 function isPricesValid(): boolean {
-    if (!price) {
+    if (!price?.data?.length) {
         console.log("Cache empty");
         return false;
     } else {    

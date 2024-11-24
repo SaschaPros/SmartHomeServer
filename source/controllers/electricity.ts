@@ -72,6 +72,7 @@ async function fetchElectricityPrices(): Promise<ElectricityPrice> {
 
     const response = await fetch(request);
     price = await response.json() as ElectricityPrice[][0];
+    cacheDate = new Date();
     return price;
 }
 

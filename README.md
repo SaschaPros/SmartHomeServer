@@ -1,11 +1,11 @@
 
 # Smarthome Server
 
-This Node.JS server is providing several REST-APIs which can be useful within a smart home system.
+This Java Spring server is providing several REST-APIs which can be useful within a smart home system.
 
 ## How to use
 
-To use this server you can easily clone the sources and build a Docker image. The server runs without any configuration needed.
+To use this server you can easily clone the sources and build a Docker image with Maven. The server runs without any configuration needed.
 A ready-to-go image is also provided on [Docker Hub](https://hub.docker.com/r/spro93/smarthome)
 
 To run the server in Docker use this command:
@@ -39,11 +39,11 @@ The API used for fetching provides prices of the EPEX Spot market for **Austria*
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `text/html; charset=utf-8` | Boolean represented by 0 (**false**) or 1 (**true**) |
-> | `500`         | `text/html; charset=utf-8` | String with the error message (e.g. "*additionalAmount is not a number*") |
+> | `400`         | `text/html; charset=utf-8` | String with the error message (e.g. "*additionalAmount is not a number*") |
 
 ##### Example cURL
 
-> ```javascript
+> ```bash
 >  curl 'http://localhost:3000/api/electricityPrice'
 >  curl 'http://localhost:3000/api/electricityPrice?additionalAmount=123'
 > ```
@@ -51,10 +51,9 @@ The API used for fetching provides prices of the EPEX Spot market for **Austria*
 ### Check if given coordinates are exposed by the sun
 
 Calculates based on the given GPS-location and the current date and time if the sun is within the given coordinates (azimuth and altitude).
-For the calculation suncalc3 is used: 
+For the calculation commons-suncalc is used:
 
-NPM: https://www.npmjs.com/package/suncalc3
-GitHub: https://github.com/hypnos3/suncalc3
+GitHub: https://github.com/shredzone/commons-suncalc
 
 **URL** : `/api/isExposedToSun?{latitude}&{longitude}&{minAzimuth}&{maxAzimuth}&{minAltitude}&{maxAltitude}`
 
@@ -76,11 +75,11 @@ GitHub: https://github.com/hypnos3/suncalc3
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `text/html; charset=utf-8` | Boolean represented by 0 (**false**) or 1 (**true**) |
-> | `500`         | `text/html; charset=utf-8` | String with the error message (only if input validation fails) |
+> | `400`         | `text/html; charset=utf-8` | String with the error message (only if input validation fails) |
 
 ##### Example cURL
 
-> ```javascript
+> ```bash
 >  curl 'http://localhost:3000/api/isExposedToSun?minAzimuth=225&maxAzimuth=40'
 >  curl 'http://localhost:3000/api/isExposedToSun?minAzimuth=225&maxAzimuth=40&minAltitude=10'
 >  curl 'http://localhost:3000/api/isExposedToSun?latitude=48.0676871028563&longitude=12.862135153533522&minAzimuth=225&maxAzimuth=40&minAltitude=10&maxAltitude=80'

@@ -39,7 +39,7 @@ The API used for fetching provides prices of the EPEX Spot market for **Austria*
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `text/html; charset=utf-8` | Boolean represented by 0 (**false**) or 1 (**true**) |
-> | `500`         | `text/html; charset=utf-8` | String with the error message (e.g. "*additionalAmount is not a number*") |
+| `400`         | `text/html; charset=utf-8` | String with the error message (e.g. "*additionalAmount is not a number*") |
 
 ##### Example cURL
 
@@ -76,7 +76,7 @@ GitHub: https://github.com/hypnos3/suncalc3
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `text/html; charset=utf-8` | Boolean represented by 0 (**false**) or 1 (**true**) |
-> | `500`         | `text/html; charset=utf-8` | String with the error message (only if input validation fails) |
+| `400`         | `text/html; charset=utf-8` | String with the error message (only if input validation fails) |
 
 ##### Example cURL
 

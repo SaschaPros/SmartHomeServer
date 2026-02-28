@@ -2,6 +2,7 @@ package com.spro93.smarthome.service;
 
 import com.spro93.smarthome.model.ElectricityPrice;
 import com.spro93.smarthome.model.PriceData;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -11,6 +12,7 @@ import java.time.ZonedDateTime;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ElectricityService {
 
     private static final String API_URL = "https://apis.smartenergy.at/market/v1/price";
@@ -18,10 +20,6 @@ public class ElectricityService {
     private ZonedDateTime cacheDate;
 
     private final RestTemplate restTemplate;
-
-    public ElectricityService(final RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
 
     public String isPriceNegative(final Double additionalAmount) {
         var now = ZonedDateTime.now();

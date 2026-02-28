@@ -1,6 +1,7 @@
 package com.spro93.smarthome.controller;
 
 import com.spro93.smarthome.service.SunPositionService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,13 +12,10 @@ import java.util.Map;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 public class SunPositionController {
 
     private final SunPositionService sunPositionService;
-
-    public SunPositionController(final SunPositionService sunPositionService) {
-        this.sunPositionService = sunPositionService;
-    }
 
     @GetMapping("/api/isExposedToSun")
     public ResponseEntity<String> isExposedToSun(@RequestParam final Map<String, String> query) {

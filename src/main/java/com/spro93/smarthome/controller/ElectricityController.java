@@ -13,30 +13,30 @@ public class ElectricityController {
 
     private final ElectricityService electricityService;
 
-    public ElectricityController(ElectricityService electricityService) {
+    public ElectricityController(final ElectricityService electricityService) {
         this.electricityService = electricityService;
     }
 
     @GetMapping("/api/electricityPrice")
-    public ResponseEntity<String> getElectricityPrice(@RequestParam(required = false) String additionalAmount) {
-        String errorMessage = checkNumericParameter(additionalAmount, "additionalAmount");
+    public ResponseEntity<String> getElectricityPrice(@RequestParam(required = false) final String additionalAmount) {
+        var errorMessage = checkNumericParameter(additionalAmount, "additionalAmount");
         if (!errorMessage.isEmpty()) {
             log.info("Parameter invalid, responding with HTTP 400. Error: {}", errorMessage);
             return ResponseEntity.badRequest().body(errorMessage);
         } else {
-            Double amount = additionalAmount != null ? Double.parseDouble(additionalAmount) : null;
+            var amount = additionalAmount != null ? Double.valueOf(additionalAmount) : null;
             return ResponseEntity.ok(electricityService.isPriceNegative(amount));
         }
     }
 
-    private String checkNumericParameter(String param, String paramName) {
+    private String checkNumericParameter(final String param, final String paramName) {
         if (param != null && !isNumeric(param)) {
             return paramName + " is not a number ";
         }
         return "";
     }
 
-    private boolean isNumeric(String param) {
+    private boolean isNumeric(final String param) {
         try {
             Double.parseDouble(param);
             return true;

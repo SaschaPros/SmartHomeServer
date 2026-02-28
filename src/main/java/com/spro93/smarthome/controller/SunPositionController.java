@@ -15,13 +15,13 @@ public class SunPositionController {
 
     private final SunPositionService sunPositionService;
 
-    public SunPositionController(SunPositionService sunPositionService) {
+    public SunPositionController(final SunPositionService sunPositionService) {
         this.sunPositionService = sunPositionService;
     }
 
     @GetMapping("/api/isExposedToSun")
-    public ResponseEntity<String> isExposedToSun(@RequestParam Map<String, String> query) {
-        String errorMessage = checkSunPositionParameters(query);
+    public ResponseEntity<String> isExposedToSun(@RequestParam final Map<String, String> query) {
+        var errorMessage = checkSunPositionParameters(query);
         if (!errorMessage.isEmpty()) {
             log.info("Parameters invalid, responding with HTTP 400. Errors: {}", errorMessage);
             return ResponseEntity.badRequest().body(errorMessage);
@@ -30,8 +30,8 @@ public class SunPositionController {
         }
     }
 
-    private String checkSunPositionParameters(Map<String, String> query) {
-        StringBuilder errorMessage = new StringBuilder();
+    private String checkSunPositionParameters(final Map<String, String> query) {
+        var errorMessage = new StringBuilder();
 
         errorMessage.append(checkNumericParameterAvailable(query.get("minAzimuth"), "minAzimuth"));
         errorMessage.append(checkNumericParameterAvailable(query.get("maxAzimuth"), "maxAzimuth"));
@@ -41,7 +41,7 @@ public class SunPositionController {
         return errorMessage.toString().trim();
     }
 
-    private String checkNumericParameterAvailable(String param, String paramName) {
+    private String checkNumericParameterAvailable(final String param, final String paramName) {
         if (param == null || param.isEmpty()) {
             return paramName + " missing ";
         } else {
@@ -49,14 +49,14 @@ public class SunPositionController {
         }
     }
 
-    private String checkNumericParameter(String param, String paramName) {
+    private String checkNumericParameter(final String param, final String paramName) {
         if (param != null && !param.isEmpty() && !isNumeric(param)) {
             return paramName + " is not a number ";
         }
         return "";
     }
 
-    private boolean isNumeric(String param) {
+    private boolean isNumeric(final String param) {
         try {
             Double.parseDouble(param);
             return true;

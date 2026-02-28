@@ -16,44 +16,44 @@ public class SunPositionService {
     private static final double MIN_ALTITUDE_DEFAULT = 0;
     private static final double MAX_ALTITUDE_DEFAULT = 90;
 
-    public String isExposed(Map<String, String> query) {
+    public String isExposed(final Map<String, String> query) {
         log.info("Sun exposure requested for query {}", query);
 
-        double latitude = getValidValue(query.get("latitude"), -90, 90, LATITUDE_FALLBACK);
-        double longitude = getValidValue(query.get("longitude"), -180, 180, LONGITUDE_FALLBACK);
+        var latitude = getValidValue(query.get("latitude"), -90, 90, LATITUDE_FALLBACK);
+        var longitude = getValidValue(query.get("longitude"), -180, 180, LONGITUDE_FALLBACK);
 
-        double minAltitude = query.containsKey("minAltitude") ? Double.parseDouble(query.get("minAltitude")) : MIN_ALTITUDE_DEFAULT;
-        double maxAltitude = query.containsKey("maxAltitude") ? Double.parseDouble(query.get("maxAltitude")) : MAX_ALTITUDE_DEFAULT;
+        var minAltitude = query.containsKey("minAltitude") ? Double.parseDouble(query.get("minAltitude")) : MIN_ALTITUDE_DEFAULT;
+        var maxAltitude = query.containsKey("maxAltitude") ? Double.parseDouble(query.get("maxAltitude")) : MAX_ALTITUDE_DEFAULT;
 
-        boolean correctDeclination = !query.containsKey("correctDeclination") || Boolean.parseBoolean(query.get("correctDeclination"));
+        var correctDeclination = !query.containsKey("correctDeclination") || Boolean.parseBoolean(query.get("correctDeclination"));
 
-        double minAzimuthRaw = Double.parseDouble(query.get("minAzimuth"));
-        double maxAzimuthRaw = Double.parseDouble(query.get("maxAzimuth"));
+        var minAzimuthRaw = Double.parseDouble(query.get("minAzimuth"));
+        var maxAzimuthRaw = Double.parseDouble(query.get("maxAzimuth"));
 
-        double minAzimuth = correctDeclination ? correctAngle(minAzimuthRaw, latitude, longitude) : minAzimuthRaw;
-        double maxAzimuth = correctDeclination ? correctAngle(maxAzimuthRaw, latitude, longitude) : maxAzimuthRaw;
+        var minAzimuth = correctDeclination ? correctAngle(minAzimuthRaw, latitude, longitude) : minAzimuthRaw;
+        var maxAzimuth = correctDeclination ? correctAngle(maxAzimuthRaw, latitude, longitude) : maxAzimuthRaw;
 
         log.info("Using {\"latitude\":{},\"longitude\":{},\"minAzimuth\":{},\"maxAzimuth\":{},\"minAltitude\":{},\"maxAltitude\":{}} for calculation",
                 latitude, longitude, minAzimuth, maxAzimuth, minAltitude, maxAltitude);
 
-        SunPosition currentSunPosition = SunPosition.compute()
+        var currentSunPosition = SunPosition.compute()
                 .at(latitude, longitude)
                 .execute();
 
-        boolean azimuthExposed = isAngleInRange(currentSunPosition.getAzimuth(), minAzimuth, maxAzimuth);
-        boolean altitudeExposed = isAngleInRange(currentSunPosition.getAltitude(), minAltitude, maxAltitude);
+        var azimuthExposed = isAngleInRange(currentSunPosition.getAzimuth(), minAzimuth, maxAzimuth);
+        var altitudeExposed = isAngleInRange(currentSunPosition.getAltitude(), minAltitude, maxAltitude);
 
-        String response = formatResponse(azimuthExposed && altitudeExposed);
+        var response = formatResponse(azimuthExposed && altitudeExposed);
 
         log.info("Responding with {} (Azimuth exposed: {}, Altitude exposed: {})", response, azimuthExposed, altitudeExposed);
 
         return response;
     }
 
-    private double getValidValue(String value, double min, double max, double fallback) {
+    private double getValidValue(final String value, final double min, final double max, final double fallback) {
         try {
             if (value != null) {
-                double val = Double.parseDouble(value);
+                var val = Double.parseDouble(value);
                 if (val >= min && val <= max) {
                     return val;
                 }
@@ -62,7 +62,7 @@ public class SunPositionService {
         return fallback;
     }
 
-    private boolean isAngleInRange(double value, double min, double max) {
+    private boolean isAngleInRange(final double value, final double min, final double max) {
         if (min <= max) {
             return value >= min && value <= max;
         } else {
@@ -70,13 +70,13 @@ public class SunPositionService {
         }
     }
 
-    private double correctAngle(double value, double latitude, double longitude) {
-        double currentDeclination = GeoMag.getDeclination(latitude, longitude);
+    private double correctAngle(final double value, final double latitude, final double longitude) {
+        var currentDeclination = GeoMag.getDeclination(latitude, longitude);
         log.info("Calculated declination: {}", currentDeclination);
         return value + currentDeclination;
     }
 
-    private String formatResponse(boolean resp) {
+    private String formatResponse(final boolean resp) {
         return resp ? "1" : "0";
     }
 }

@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -20,38 +19,38 @@ public class ElectricityService {
 
     private final RestTemplate restTemplate;
 
-    public ElectricityService(RestTemplate restTemplate) {
+    public ElectricityService(final RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public String isPriceNegative(Double additionalAmount) {
-        ZonedDateTime now = ZonedDateTime.now();
-        ElectricityPrice prices = getElectricityPrices();
+    public String isPriceNegative(final Double additionalAmount) {
+        var now = ZonedDateTime.now();
+        var prices = getElectricityPrices();
 
-        Optional<PriceData> actualPrice = prices.getData().stream()
+        var actualPrice = prices.data().stream()
                 .filter(element -> {
-                    Duration duration = Duration.between(element.getDate(), now);
-                    long diff = duration.toMillis();
+                    var duration = Duration.between(element.date(), now);
+                    var diff = duration.toMillis();
                     return diff > 0 && diff <= 15 * 60 * 1000;
                 })
                 .findFirst();
 
         boolean isNegative;
         if (actualPrice.isPresent()) {
-            double priceValue = actualPrice.get().getValue();
+            var priceValue = actualPrice.get().value();
             if (additionalAmount != null) {
                 log.info("Additional amount of {} included.", additionalAmount);
                 isNegative = priceValue + additionalAmount < 0;
             } else {
                 isNegative = priceValue < 0;
             }
-            String status = formatResponse(isNegative);
+            var status = formatResponse(isNegative);
             log.info("Electricity price requested. Price is at {} at {} ct/kWh. Responding with {}",
-                    actualPrice.get().getDate(), priceValue, status);
+                    actualPrice.get().date(), priceValue, status);
             return status;
         } else {
             isNegative = false;
-            String status = formatResponse(isNegative);
+            var status = formatResponse(isNegative);
             log.info("Electricity price requested. No actual price found. Responding with {}", status);
             return status;
         }
@@ -66,18 +65,18 @@ public class ElectricityService {
     }
 
     private boolean isPricesValid() {
-        if (cachedPrice == null || cachedPrice.getData() == null || cachedPrice.getData().isEmpty()) {
+        if (cachedPrice == null || cachedPrice.data() == null || cachedPrice.data().isEmpty()) {
             log.info("Cache empty");
             return false;
         }
 
-        ZonedDateTime now = ZonedDateTime.now();
-        Duration diff = Duration.between(cacheDate, now);
+        var now = ZonedDateTime.now();
+        var diff = Duration.between(cacheDate, now);
 
         if (diff.toMillis() >= 24 * 60 * 60 * 1000) {
             log.info("Cache is outdated");
             return false;
-        } else if (cachedPrice.getData().get(0).getDate().isBefore(now)) {
+        } else if (cachedPrice.data().get(0).date().isBefore(now)) {
             log.info("Cache's values are invalid");
             return false;
         } else {
@@ -87,13 +86,13 @@ public class ElectricityService {
 
     private ElectricityPrice fetchElectricityPrices() {
         log.info("Fetching new prices");
-        ElectricityPrice price = restTemplate.getForObject(API_URL, ElectricityPrice.class);
+        var price = restTemplate.getForObject(API_URL, ElectricityPrice.class);
         this.cachedPrice = price;
         this.cacheDate = ZonedDateTime.now();
         return price;
     }
 
-    private String formatResponse(boolean resp) {
+    private String formatResponse(final boolean resp) {
         return resp ? "1" : "0";
     }
 }

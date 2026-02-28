@@ -1,7 +1,5 @@
 package com.spro93.smarthome.util;
 
-import java.time.ZonedDateTime;
-
 public class GeoMag {
 
     private static final double[][] gnmWmm2020 = {
@@ -81,7 +79,7 @@ public class GeoMag {
         }
 
         for (int m = 0; m <= 12; m++) {
-            int mm = m * m;
+            var mm = m * m;
             for (int n = Math.max(m + 1, 2); n <= 12; n++) {
                 roots[m][n][0] = Math.sqrt((n - 1) * (n - 1) - mm);
                 roots[m][n][1] = 1.0 / Math.sqrt(n * n - mm);
@@ -89,26 +87,26 @@ public class GeoMag {
         }
     }
 
-    public static double getDeclination(double latitude, double longitude) {
+    public static double getDeclination(final double latitude, final double longitude) {
         return getDeclination(latitude, longitude, 0);
     }
 
-    public static double getDeclination(double latitude, double longitude, double altitude) {
-        double cosLat = Math.cos(deg2rad(latitude));
-        double sinLat = Math.sin(deg2rad(latitude));
-        double sr = Math.sqrt(Math.pow(GLOBE_A, 2) * Math.pow(cosLat, 2) + Math.pow(GLOBE_B, 2) * Math.pow(sinLat, 2));
-        double theta = Math.atan2(cosLat * (altitude * sr + Math.pow(GLOBE_A, 2)), sinLat * (altitude * sr + Math.pow(GLOBE_B, 2)));
-        double r = Math.sqrt(
+    public static double getDeclination(final double latitude, final double longitude, final double altitude) {
+        var cosLat = Math.cos(deg2rad(latitude));
+        var sinLat = Math.sin(deg2rad(latitude));
+        var sr = Math.sqrt(Math.pow(GLOBE_A, 2) * Math.pow(cosLat, 2) + Math.pow(GLOBE_B, 2) * Math.pow(sinLat, 2));
+        var theta = Math.atan2(cosLat * (altitude * sr + Math.pow(GLOBE_A, 2)), sinLat * (altitude * sr + Math.pow(GLOBE_B, 2)));
+        var r = Math.sqrt(
                 Math.pow(altitude, 2) +
                         2 * altitude * sr +
                         (Math.pow(GLOBE_A, 4) - (Math.pow(GLOBE_A, 4) - Math.pow(GLOBE_B, 4)) * Math.pow(sinLat, 2)) /
                                 (Math.pow(GLOBE_A, 2) - (Math.pow(GLOBE_A, 2) - Math.pow(GLOBE_B, 2)) * Math.pow(sinLat, 2)));
-        double c = Math.cos(theta);
-        double s = Math.sin(theta);
-        double invS = 1 / (s + (s == 0 ? 1e-8 : 0));
+        var c = Math.cos(theta);
+        var s = Math.sin(theta);
+        var invS = 1 / (s + (s == 0 ? 1e-8 : 0));
 
-        double[][] P = new double[13][13];
-        double[][] DP = new double[13][13];
+        var P = new double[13][13];
+        var DP = new double[13][13];
         P[0][0] = 1;
         P[1][1] = s;
         P[1][0] = c;
@@ -128,9 +126,9 @@ public class GeoMag {
             }
         }
 
-        double julianYears = julianYearsSince2020();
-        double[][] gnm = new double[13][13];
-        double[][] hnm = new double[13][13];
+        var julianYears = julianYearsSince2020();
+        var gnm = new double[13][13];
+        var hnm = new double[13][13];
         for (int n = 1; n <= 12; n++) {
             for (int m = 0; m <= 12; m++) {
                 gnm[n][m] = gnmWmm2020[n][m] + julianYears * gtnmWmm2020[n][m];
@@ -138,25 +136,25 @@ public class GeoMag {
             }
         }
 
-        double[] sm = new double[13];
-        double[] cm = new double[13];
+        var sm = new double[13];
+        var cm = new double[13];
         for (int m = 0; m <= 12; m++) {
             sm[m] = Math.sin(m * deg2rad(longitude));
             cm[m] = Math.cos(m * deg2rad(longitude));
         }
 
-        double BR = 0.0;
-        double BTheta = 0.0;
-        double BPhi = 0.0;
-        double fn0 = GLOBE_R0 / r;
-        double fn = Math.pow(fn0, 2);
+        var BR = 0.0;
+        var BTheta = 0.0;
+        var BPhi = 0.0;
+        var fn0 = GLOBE_R0 / r;
+        var fn = Math.pow(fn0, 2);
 
         for (int n = 1; n <= 12; n++) {
-            double c1n = 0;
-            double c2n = 0;
-            double c3n = 0;
+            var c1n = 0.0;
+            var c2n = 0.0;
+            var c3n = 0.0;
             for (int m = 0; m <= n; m++) {
-                double tmp = gnm[n][m] * cm[m] + hnm[n][m] * sm[m];
+                var tmp = gnm[n][m] * cm[m] + hnm[n][m] * sm[m];
                 c1n += tmp * P[n][m];
                 c2n += tmp * DP[n][m];
                 c3n += m * (gnm[n][m] * sm[m] - hnm[n][m] * cm[m]) * P[n][m];
@@ -167,11 +165,11 @@ public class GeoMag {
             BPhi += c3n * fn * invS;
         }
 
-        double psi = theta - (Math.PI / 2 - deg2rad(latitude));
-        double sinPsi = Math.sin(psi);
-        double cosPsi = Math.cos(psi);
-        double X = -BTheta * cosPsi - BR * sinPsi;
-        double Y = BPhi;
+        var psi = theta - (Math.PI / 2 - deg2rad(latitude));
+        var sinPsi = Math.sin(psi);
+        var cosPsi = Math.cos(psi);
+        var X = -BTheta * cosPsi - BR * sinPsi;
+        var Y = BPhi;
 
         return X != 0 || Y != 0 ? round(rad2deg(Math.atan2(Y, X)), 2) : 0;
     }
@@ -180,16 +178,16 @@ public class GeoMag {
         return (System.currentTimeMillis() / 86400000.0 + 2440587.5 - 2458850.0) / 365.25;
     }
 
-    private static double round(double num, int decimalPlaces) {
-        double factor = Math.pow(10, decimalPlaces);
+    private static double round(final double num, final int decimalPlaces) {
+        var factor = Math.pow(10, decimalPlaces);
         return Math.round(num * factor) / factor;
     }
 
-    private static double deg2rad(double deg) {
+    private static double deg2rad(final double deg) {
         return deg * 0.017453292519943295;
     }
 
-    private static double rad2deg(double rad) {
+    private static double rad2deg(final double rad) {
         return rad * 57.29577951308232;
     }
 }

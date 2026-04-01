@@ -58,7 +58,7 @@ public class SunPositionService {
                     return val;
                 }
             }
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException _) {}
         return fallback;
     }
 

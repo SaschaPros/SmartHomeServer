@@ -25,6 +25,9 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Run tests
+        run: mvn test
+
       - name: Get version from pom.xml
         id: get_version
         run: |

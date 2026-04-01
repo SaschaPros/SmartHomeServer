@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.spro93</groupId>
 	<artifactId>smarthome</artifactId>
-	<version>11.0.0</version>
+	<version>12.0.0</version>
 	<name>smarthome</name>
 	<description>Smarthome Server</description>
 	<properties>

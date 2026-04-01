@@ -19,13 +19,18 @@ public class SunPositionController {
 
     @GetMapping("/api/isExposedToSun")
     public ResponseEntity<String> isExposedToSun(@RequestParam final Map<String, String> query) {
-        var errorMessage = checkSunPositionParameters(query);
-        if (!errorMessage.isEmpty()) {
-            log.info("Parameters invalid, responding with HTTP 400. Errors: {}", errorMessage);
-            return ResponseEntity.badRequest().body(errorMessage);
-        } else {
-            return ResponseEntity.ok(sunPositionService.isExposed(query));
-        }
+        return switch (validate(query)) {
+            case ValidationResult.Invalid(var errorMessage) -> {
+                log.info("Parameters invalid, responding with HTTP 400. Errors: {}", errorMessage);
+                yield ResponseEntity.badRequest().body(errorMessage);
+            }
+            case ValidationResult.Valid() -> ResponseEntity.ok(sunPositionService.isExposed(query));
+        };
+    }
+
+    private ValidationResult validate(final Map<String, String> query) {
+        var errors = checkSunPositionParameters(query);
+        return errors.isEmpty() ? new ValidationResult.Valid() : new ValidationResult.Invalid(errors);
     }
 
     private String checkSunPositionParameters(final Map<String, String> query) {
@@ -40,11 +45,10 @@ public class SunPositionController {
     }
 
     private String checkNumericParameterAvailable(final String param, final String paramName) {
-        if (param == null || param.isEmpty()) {
-            return paramName + " missing ";
-        } else {
-            return checkNumericParameter(param, paramName);
-        }
+        return switch (param) {
+            case null, "" -> paramName + " missing ";
+            default -> checkNumericParameter(param, paramName);
+        };
     }
 
     private String checkNumericParameter(final String param, final String paramName) {
@@ -58,8 +62,9 @@ public class SunPositionController {
         try {
             Double.parseDouble(param);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             return false;
         }
     }
 }
+

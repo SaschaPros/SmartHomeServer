@@ -17,14 +17,21 @@ public class ElectricityController {
 
     @GetMapping("/api/electricityPrice")
     public ResponseEntity<String> getElectricityPrice(@RequestParam(required = false) final String additionalAmount) {
-        var errorMessage = checkNumericParameter(additionalAmount, "additionalAmount");
-        if (!errorMessage.isEmpty()) {
-            log.info("Parameter invalid, responding with HTTP 400. Error: {}", errorMessage);
-            return ResponseEntity.badRequest().body(errorMessage);
-        } else {
-            var amount = additionalAmount != null ? Double.valueOf(additionalAmount) : null;
-            return ResponseEntity.ok(electricityService.isPriceNegative(amount));
-        }
+        return switch (validate(additionalAmount)) {
+            case ValidationResult.Invalid(var errorMessage) -> {
+                log.info("Parameter invalid, responding with HTTP 400. Error: {}", errorMessage);
+                yield ResponseEntity.badRequest().body(errorMessage);
+            }
+            case ValidationResult.Valid() -> {
+                var amount = additionalAmount != null ? Double.valueOf(additionalAmount) : null;
+                yield ResponseEntity.ok(electricityService.isPriceNegative(amount));
+            }
+        };
+    }
+
+    private ValidationResult validate(final String additionalAmount) {
+        var error = checkNumericParameter(additionalAmount, "additionalAmount");
+        return error.isEmpty() ? new ValidationResult.Valid() : new ValidationResult.Invalid(error);
     }
 
     private String checkNumericParameter(final String param, final String paramName) {
@@ -38,8 +45,9 @@ public class ElectricityController {
         try {
             Double.parseDouble(param);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             return false;
         }
     }
 }
+

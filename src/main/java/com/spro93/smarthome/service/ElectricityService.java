@@ -1,7 +1,6 @@
 package com.spro93.smarthome.service;
 
 import com.spro93.smarthome.model.ElectricityPrice;
-import com.spro93.smarthome.model.PriceData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,33 +24,27 @@ public class ElectricityService {
         var now = ZonedDateTime.now();
         var prices = getElectricityPrices();
 
-        var actualPrice = prices.data().stream()
+        return prices.data().stream()
                 .filter(element -> {
-                    var duration = Duration.between(element.date(), now);
-                    var diff = duration.toMillis();
+                    var diff = Duration.between(element.date(), now).toMillis();
                     return diff > 0 && diff <= 15 * 60 * 1000;
                 })
-                .findFirst();
-
-        boolean isNegative;
-        if (actualPrice.isPresent()) {
-            var priceValue = actualPrice.get().value();
-            if (additionalAmount != null) {
-                log.info("Additional amount of {} included.", additionalAmount);
-                isNegative = priceValue + additionalAmount < 0;
-            } else {
-                isNegative = priceValue < 0;
-            }
-            var status = formatResponse(isNegative);
-            log.info("Electricity price requested. Price is at {} at {} ct/kWh. Responding with {}",
-                    actualPrice.get().date(), priceValue, status);
-            return status;
-        } else {
-            isNegative = false;
-            var status = formatResponse(isNegative);
-            log.info("Electricity price requested. No actual price found. Responding with {}", status);
-            return status;
-        }
+                .findFirst()
+                .map(priceData -> {
+                    if (additionalAmount != null) {
+                        log.info("Additional amount of {} included.", additionalAmount);
+                    }
+                    var effectivePrice = additionalAmount != null ? priceData.value() + additionalAmount : priceData.value();
+                    var status = formatResponse(effectivePrice < 0);
+                    log.info("Electricity price requested. Price is at {} at {} ct/kWh. Responding with {}",
+                            priceData.date(), priceData.value(), status);
+                    return status;
+                })
+                .orElseGet(() -> {
+                    var status = formatResponse(false);
+                    log.info("Electricity price requested. No actual price found. Responding with {}", status);
+                    return status;
+                });
     }
 
     private ElectricityPrice getElectricityPrices() {
@@ -63,7 +56,7 @@ public class ElectricityService {
     }
 
     private boolean isPricesValid() {
-        if (cachedPrice == null || cachedPrice.data() == null || cachedPrice.data().isEmpty()) {
+        if (cachedPrice == null || cachedPrice.data().isEmpty()) {
             log.info("Cache empty");
             return false;
         }
@@ -74,7 +67,7 @@ public class ElectricityService {
         if (diff.toMillis() >= 24 * 60 * 60 * 1000) {
             log.info("Cache is outdated");
             return false;
-        } else if (cachedPrice.data().get(0).date().isBefore(now)) {
+        } else if (cachedPrice.data().getFirst().date().isBefore(now)) {
             log.info("Cache's values are invalid");
             return false;
         } else {
@@ -94,3 +87,4 @@ public class ElectricityService {
         return resp ? "1" : "0";
     }
 }
+

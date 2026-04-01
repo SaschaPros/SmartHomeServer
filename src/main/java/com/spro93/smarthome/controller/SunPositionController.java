@@ -46,7 +46,8 @@ public class SunPositionController {
 
     private String checkNumericParameterAvailable(final String param, final String paramName) {
         return switch (param) {
-            case null, "" -> paramName + " missing ";
+            case null -> paramName + " missing ";
+            case "" -> paramName + " missing ";
             default -> checkNumericParameter(param, paramName);
         };
     }

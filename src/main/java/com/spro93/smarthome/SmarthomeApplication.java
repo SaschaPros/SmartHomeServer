@@ -2,9 +2,9 @@ package com.spro93.smarthome;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.client.RestTemplate;
+
+import java.time.Clock;
 
 @SpringBootApplication
 public class SmarthomeApplication {
@@ -14,8 +14,8 @@ public class SmarthomeApplication {
 	}
 
 	@Bean
-	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		return builder.build();
+	public Clock clock() {
+		return Clock.systemDefaultZone();
 	}
 
 }

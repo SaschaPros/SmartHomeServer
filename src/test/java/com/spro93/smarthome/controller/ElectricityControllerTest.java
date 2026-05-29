@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.RestTemplate;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -21,10 +20,6 @@ class ElectricityControllerTest {
 
     @MockitoBean
     private ElectricityService electricityService;
-
-    @MockitoBean
-    @SuppressWarnings("unused")
-    private RestTemplate restTemplate;
 
     @Test
     void getElectricityPrice_noParam_returnsOk() throws Exception {

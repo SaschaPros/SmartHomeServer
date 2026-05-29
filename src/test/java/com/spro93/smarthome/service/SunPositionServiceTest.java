@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SunPositionServiceTest {
@@ -126,5 +127,53 @@ class SunPositionServiceTest {
 
         var result = sunPositionService.isExposed(query);
         assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+    }
+
+    @Test
+    void isExposed_emptyOptionalAltitude_usesDefaultsInsteadOfFailing() {
+        // A present-but-empty optional parameter (?minAltitude=) must not trigger a 500.
+        var query = new HashMap<String, String>();
+        query.put("minAzimuth", "0");
+        query.put("maxAzimuth", "360");
+        query.put("minAltitude", "");
+        query.put("maxAltitude", "");
+        query.put("correctDeclination", "false");
+
+        var result = sunPositionService.isExposed(query);
+        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+    }
+
+    @Test
+    void normalizeAzimuth_keepsCanonicalValues() {
+        assertEquals(0.0, SunPositionService.normalizeAzimuth(0), 1e-9);
+        assertEquals(180.0, SunPositionService.normalizeAzimuth(180), 1e-9);
+        // Exactly 360 is preserved so a [0, 360] full-circle request is not collapsed to a point.
+        assertEquals(360.0, SunPositionService.normalizeAzimuth(360), 1e-9);
+    }
+
+    @Test
+    void normalizeAzimuth_wrapsOutOfRangeValues() {
+        assertEquals(10.0, SunPositionService.normalizeAzimuth(370), 1e-9);
+        assertEquals(355.0, SunPositionService.normalizeAzimuth(-5), 1e-9);
+        assertEquals(5.0, SunPositionService.normalizeAzimuth(725), 1e-9);
+        assertEquals(355.0, SunPositionService.normalizeAzimuth(-365), 1e-9);
+    }
+
+    @Test
+    void isAngleInRange_nonWrappingRange() {
+        assertTrue(SunPositionService.isAngleInRange(15, 10, 20));
+        assertTrue(SunPositionService.isAngleInRange(10, 10, 20));
+        assertTrue(SunPositionService.isAngleInRange(20, 10, 20));
+        assertFalse(SunPositionService.isAngleInRange(25, 10, 20));
+        assertFalse(SunPositionService.isAngleInRange(5, 10, 20));
+    }
+
+    @Test
+    void isAngleInRange_wrappingRange() {
+        // min > max means the range wraps across the 0/360 boundary.
+        assertTrue(SunPositionService.isAngleInRange(355, 350, 20));
+        assertTrue(SunPositionService.isAngleInRange(10, 350, 20));
+        assertFalse(SunPositionService.isAngleInRange(100, 350, 20));
+        assertFalse(SunPositionService.isAngleInRange(200, 350, 20));
     }
 }

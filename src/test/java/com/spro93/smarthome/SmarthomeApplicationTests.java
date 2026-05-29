@@ -37,4 +37,15 @@ public class SmarthomeApplicationTests {
 		mockMvc.perform(get("/api/isExposedToSun"))
 				.andExpect(status().isBadRequest());
 	}
+
+	@Test
+	public void testIsExposedToSunEmptyOptionalAltitudeReturnsOk() throws Exception {
+		// A present-but-empty optional parameter must default rather than cause an HTTP 500.
+		mockMvc.perform(get("/api/isExposedToSun")
+						.param("minAzimuth", "90")
+						.param("maxAzimuth", "270")
+						.param("minAltitude", "")
+						.param("correctDeclination", "false"))
+				.andExpect(status().isOk());
+	}
 }

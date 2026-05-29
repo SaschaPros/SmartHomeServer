@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.RestTemplate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -22,10 +21,6 @@ class SunPositionControllerTest {
 
     @MockitoBean
     private SunPositionService sunPositionService;
-
-    @MockitoBean
-    @SuppressWarnings("unused")
-    private RestTemplate restTemplate;
 
     @Test
     void isExposedToSun_validMinimalParams_returnsOk() throws Exception {

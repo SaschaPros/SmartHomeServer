@@ -1,6 +1,9 @@
 package com.spro93.smarthome.util;
 
-public class GeoMag {
+public final class GeoMag {
+
+    private GeoMag() {
+    }
 
     private static final double[][] gnmWmm2020 = {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},

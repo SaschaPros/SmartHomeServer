@@ -99,4 +99,21 @@ class SunPositionControllerTest {
                         .param("maxAltitude", "abc"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void isExposedToSun_nanAzimuth_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/isExposedToSun")
+                        .param("minAzimuth", "NaN")
+                        .param("maxAzimuth", "270"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void isExposedToSun_infiniteAltitude_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/isExposedToSun")
+                        .param("minAzimuth", "90")
+                        .param("maxAzimuth", "270")
+                        .param("minAltitude", "-Infinity"))
+                .andExpect(status().isBadRequest());
+    }
 }

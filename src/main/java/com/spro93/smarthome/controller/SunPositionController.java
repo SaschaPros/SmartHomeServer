@@ -36,36 +36,11 @@ public class SunPositionController {
     private String checkSunPositionParameters(final Map<String, String> query) {
         var errorMessage = new StringBuilder();
 
-        errorMessage.append(checkNumericParameterAvailable(query.get("minAzimuth"), "minAzimuth"));
-        errorMessage.append(checkNumericParameterAvailable(query.get("maxAzimuth"), "maxAzimuth"));
-        errorMessage.append(checkNumericParameter(query.get("minAltitude"), "minAltitude"));
-        errorMessage.append(checkNumericParameter(query.get("maxAltitude"), "maxAltitude"));
+        errorMessage.append(NumericParams.checkRequired(query.get("minAzimuth"), "minAzimuth"));
+        errorMessage.append(NumericParams.checkRequired(query.get("maxAzimuth"), "maxAzimuth"));
+        errorMessage.append(NumericParams.checkOptional(query.get("minAltitude"), "minAltitude"));
+        errorMessage.append(NumericParams.checkOptional(query.get("maxAltitude"), "maxAltitude"));
 
         return errorMessage.toString().trim();
     }
-
-    private String checkNumericParameterAvailable(final String param, final String paramName) {
-        return switch (param) {
-            case null -> paramName + " missing ";
-            case "" -> paramName + " missing ";
-            default -> checkNumericParameter(param, paramName);
-        };
-    }
-
-    private String checkNumericParameter(final String param, final String paramName) {
-        if (param != null && !param.isEmpty() && !isNumeric(param)) {
-            return paramName + " is not a number ";
-        }
-        return "";
-    }
-
-    private boolean isNumeric(final String param) {
-        try {
-            Double.parseDouble(param);
-            return true;
-        } catch (NumberFormatException _) {
-            return false;
-        }
-    }
 }
-

@@ -1,14 +1,18 @@
 package com.spro93.smarthome.service;
 
 import com.spro93.smarthome.util.GeoMag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.shredzone.commons.suncalc.SunPosition;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SunPositionService {
 
     private static final double LATITUDE_FALLBACK = 0;
@@ -16,9 +20,9 @@ public class SunPositionService {
     private static final double MIN_ALTITUDE_DEFAULT = 0;
     private static final double MAX_ALTITUDE_DEFAULT = 90;
 
-    public String isExposed(final Map<String, String> query) {
-        log.info("Sun exposure requested for query {}", query);
+    private final Clock clock;
 
+    public String isExposed(final Map<String, String> query) {
         var latitude = getValidValue(query.get("latitude"), -90, 90, LATITUDE_FALLBACK);
         var longitude = getValidValue(query.get("longitude"), -180, 180, LONGITUDE_FALLBACK);
 
@@ -30,13 +34,27 @@ public class SunPositionService {
         var minAzimuthRaw = Double.parseDouble(query.get("minAzimuth"));
         var maxAzimuthRaw = Double.parseDouble(query.get("maxAzimuth"));
 
-        var minAzimuth = normalizeAzimuth(correctDeclination ? correctAngle(minAzimuthRaw, latitude, longitude) : minAzimuthRaw);
-        var maxAzimuth = normalizeAzimuth(correctDeclination ? correctAngle(maxAzimuthRaw, latitude, longitude) : maxAzimuthRaw);
+        var declination = 0.0;
+        if (correctDeclination) {
+            declination = GeoMag.getDeclination(latitude, longitude);
+            log.info("Calculated declination: {}", declination);
+        }
+        var correctedMin = minAzimuthRaw + declination;
+        var correctedMax = maxAzimuthRaw + declination;
 
-        log.info("Using {\"latitude\":{},\"longitude\":{},\"minAzimuth\":{},\"maxAzimuth\":{},\"minAltitude\":{},\"maxAltitude\":{}} for calculation",
-                latitude, longitude, minAzimuth, maxAzimuth, minAltitude, maxAltitude);
+        // A request spanning the full circle must stay a full circle: normalizing both shifted
+        // bounds independently would otherwise collapse e.g. [0+d, 360+d] to the single point [d, d].
+        var fullCircle = correctedMax - correctedMin >= 360;
+        var minAzimuth = fullCircle ? 0 : normalizeAzimuth(correctedMin);
+        var maxAzimuth = fullCircle ? 360 : normalizeAzimuth(correctedMax);
+
+        // Only the parsed numeric values are logged; the raw query strings are user-controlled
+        // and must not reach the log unsanitized (log injection).
+        log.info("Using {\"latitude\":{},\"longitude\":{},\"minAzimuth\":{},\"maxAzimuth\":{},\"minAltitude\":{},\"maxAltitude\":{},\"correctDeclination\":{}} for calculation",
+                latitude, longitude, minAzimuth, maxAzimuth, minAltitude, maxAltitude, correctDeclination);
 
         var currentSunPosition = SunPosition.compute()
+                .on(ZonedDateTime.now(clock))
                 .at(latitude, longitude)
                 .execute();
 
@@ -101,12 +119,6 @@ public class SunPositionService {
         }
         var wrapped = azimuth % 360;
         return wrapped < 0 ? wrapped + 360 : wrapped;
-    }
-
-    private double correctAngle(final double value, final double latitude, final double longitude) {
-        var currentDeclination = GeoMag.getDeclination(latitude, longitude);
-        log.info("Calculated declination: {}", currentDeclination);
-        return value + currentDeclination;
     }
 
     private String formatResponse(final boolean resp) {

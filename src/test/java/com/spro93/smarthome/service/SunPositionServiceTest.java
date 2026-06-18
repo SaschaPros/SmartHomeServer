@@ -2,6 +2,9 @@ package com.spro93.smarthome.service;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +14,64 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SunPositionServiceTest {
 
-    private final SunPositionService sunPositionService = new SunPositionService();
+    /**
+     * Around the March 2026 equinox the sun's declination is ~0, which makes positions at the
+     * equator/prime meridian easy to reason about: at 12:00 UTC the sun is almost at the zenith,
+     * at 09:00 UTC it stands almost due east, and at midnight it is far below the horizon.
+     */
+    private static final String EQUINOX_NOON_UTC = "2026-03-20T12:00:00Z";
+    private static final String EQUINOX_MORNING_UTC = "2026-03-20T09:00:00Z";
+    private static final String EQUINOX_MIDNIGHT_UTC = "2026-03-20T00:00:00Z";
+
+    private static SunPositionService serviceAt(final String instant) {
+        return new SunPositionService(Clock.fixed(Instant.parse(instant), ZoneOffset.UTC));
+    }
+
+    @Test
+    void isExposed_sunNearZenithAtEquatorialNoon_returnsExposed() {
+        var query = Map.of(
+                "minAzimuth", "0",
+                "maxAzimuth", "360",
+                "minAltitude", "60",
+                "maxAltitude", "90",
+                "correctDeclination", "false"
+        );
+
+        assertEquals("1", serviceAt(EQUINOX_NOON_UTC).isExposed(query));
+    }
+
+    @Test
+    void isExposed_nightAtEquator_returnsNotExposed() {
+        // Default altitude range is [0, 90]; at midnight the sun is far below the horizon.
+        var query = Map.of(
+                "minAzimuth", "0",
+                "maxAzimuth", "360",
+                "correctDeclination", "false"
+        );
+
+        assertEquals("0", serviceAt(EQUINOX_MIDNIGHT_UTC).isExposed(query));
+    }
+
+    @Test
+    void isExposed_morningSunAtEquator_matchesEastFacingWindowOnly() {
+        var eastWindow = Map.of(
+                "minAzimuth", "45",
+                "maxAzimuth", "135",
+                "minAltitude", "-90",
+                "maxAltitude", "90",
+                "correctDeclination", "false"
+        );
+        var westWindow = Map.of(
+                "minAzimuth", "225",
+                "maxAzimuth", "315",
+                "minAltitude", "-90",
+                "maxAltitude", "90",
+                "correctDeclination", "false"
+        );
+
+        assertEquals("1", serviceAt(EQUINOX_MORNING_UTC).isExposed(eastWindow));
+        assertEquals("0", serviceAt(EQUINOX_MORNING_UTC).isExposed(westWindow));
+    }
 
     @Test
     void isExposed_fullAzimuthAndAltitudeRange_alwaysExposed() {
@@ -24,32 +84,7 @@ class SunPositionServiceTest {
                 "correctDeclination", "false"
         );
 
-        assertEquals("1", sunPositionService.isExposed(query));
-    }
-
-    @Test
-    void isExposed_returnsValidBinaryResponse() {
-        var query = Map.of(
-                "minAzimuth", "90",
-                "maxAzimuth", "270",
-                "correctDeclination", "false"
-        );
-
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
-    }
-
-    @Test
-    void isExposed_defaultAltitudeRange_usedWhenNotProvided() {
-        // Without minAltitude/maxAltitude the service defaults to [0, 90]
-        var query = Map.of(
-                "minAzimuth", "0",
-                "maxAzimuth", "360",
-                "correctDeclination", "false"
-        );
-
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+        assertEquals("1", serviceAt(EQUINOX_MIDNIGHT_UTC).isExposed(query));
     }
 
     @Test
@@ -64,24 +99,22 @@ class SunPositionServiceTest {
                 // correctDeclination defaults to true
         );
 
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+        assertEquals("1", serviceAt(EQUINOX_NOON_UTC).isExposed(query));
     }
 
     @Test
     void isExposed_outOfRangeLatitude_usesFallbackZero() {
-        // latitude 999 is out of [-90, 90], so fallback 0 is used — result must still be valid
+        // latitude 999 is out of [-90, 90], so fallback 0 is used — same result as the equator case
         var query = Map.of(
                 "minAzimuth", "0",
                 "maxAzimuth", "360",
-                "minAltitude", "-90",
+                "minAltitude", "60",
                 "maxAltitude", "90",
                 "latitude", "999",
                 "correctDeclination", "false"
         );
 
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+        assertEquals("1", serviceAt(EQUINOX_NOON_UTC).isExposed(query));
     }
 
     @Test
@@ -89,14 +122,13 @@ class SunPositionServiceTest {
         var query = Map.of(
                 "minAzimuth", "0",
                 "maxAzimuth", "360",
-                "minAltitude", "-90",
+                "minAltitude", "60",
                 "maxAltitude", "90",
                 "longitude", "999",
                 "correctDeclination", "false"
         );
 
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+        assertEquals("1", serviceAt(EQUINOX_NOON_UTC).isExposed(query));
     }
 
     @Test
@@ -104,29 +136,36 @@ class SunPositionServiceTest {
         var query = Map.of(
                 "minAzimuth", "0",
                 "maxAzimuth", "360",
-                "minAltitude", "-90",
+                "minAltitude", "60",
                 "maxAltitude", "90",
                 "latitude", "not-a-number",
                 "longitude", "not-a-number",
                 "correctDeclination", "false"
         );
 
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+        assertEquals("1", serviceAt(EQUINOX_NOON_UTC).isExposed(query));
     }
 
     @Test
     void isExposed_wrapAroundAzimuth_handledCorrectly() {
-        // minAzimuth > maxAzimuth — the isAngleInRange logic uses OR for wrap-around
-        var query = new HashMap<String, String>();
-        query.put("minAzimuth", "270");
-        query.put("maxAzimuth", "90");
-        query.put("minAltitude", "-90");
-        query.put("maxAltitude", "90");
-        query.put("correctDeclination", "false");
+        // minAzimuth > maxAzimuth wraps across the 0/360 boundary. The morning sun stands at
+        // ~90 degrees: inside the wrapping window [315, 135], outside the wrapping window [135, 45].
+        var northEastWindow = new HashMap<String, String>();
+        northEastWindow.put("minAzimuth", "315");
+        northEastWindow.put("maxAzimuth", "135");
+        northEastWindow.put("minAltitude", "-90");
+        northEastWindow.put("maxAltitude", "90");
+        northEastWindow.put("correctDeclination", "false");
 
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+        var southWestWindow = new HashMap<String, String>();
+        southWestWindow.put("minAzimuth", "135");
+        southWestWindow.put("maxAzimuth", "45");
+        southWestWindow.put("minAltitude", "-90");
+        southWestWindow.put("maxAltitude", "90");
+        southWestWindow.put("correctDeclination", "false");
+
+        assertEquals("1", serviceAt(EQUINOX_MORNING_UTC).isExposed(northEastWindow));
+        assertEquals("0", serviceAt(EQUINOX_MORNING_UTC).isExposed(southWestWindow));
     }
 
     @Test
@@ -139,8 +178,7 @@ class SunPositionServiceTest {
         query.put("maxAltitude", "");
         query.put("correctDeclination", "false");
 
-        var result = sunPositionService.isExposed(query);
-        assertTrue(result.equals("0") || result.equals("1"), "Response must be '0' or '1'");
+        assertEquals("1", serviceAt(EQUINOX_NOON_UTC).isExposed(query));
     }
 
     @Test

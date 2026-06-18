@@ -8,6 +8,8 @@ RUN mvn package -DskipTests
 
 # Run stage
 FROM eclipse-temurin:25.0.3_9-jre-alpine
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 3000

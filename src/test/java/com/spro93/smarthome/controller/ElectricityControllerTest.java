@@ -57,15 +57,36 @@ class ElectricityControllerTest {
     }
 
     @Test
+    void getElectricityPrice_emptyParam_treatedAsAbsent() throws Exception {
+        when(electricityService.isPriceNegative(null)).thenReturn("0");
+
+        mockMvc.perform(get("/api/electricityPrice").param("additionalAmount", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string("0"));
+    }
+
+    @Test
     void getElectricityPrice_nonNumericParam_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/api/electricityPrice").param("additionalAmount", "abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("additionalAmount is not a number "));
+                .andExpect(content().string("additionalAmount is not a number"));
     }
 
     @Test
     void getElectricityPrice_specialCharParam_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/api/electricityPrice").param("additionalAmount", "1e!"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getElectricityPrice_nanParam_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/electricityPrice").param("additionalAmount", "NaN"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getElectricityPrice_infinityParam_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/electricityPrice").param("additionalAmount", "Infinity"))
                 .andExpect(status().isBadRequest());
     }
 }

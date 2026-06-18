@@ -30,3 +30,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Build/test artifacts ###
+test_output.txt
+*.log

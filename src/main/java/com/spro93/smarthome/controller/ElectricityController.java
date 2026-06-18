@@ -23,31 +23,16 @@ public class ElectricityController {
                 yield ResponseEntity.badRequest().body(errorMessage);
             }
             case ValidationResult.Valid() -> {
-                var amount = additionalAmount != null ? Double.valueOf(additionalAmount) : null;
+                var amount = additionalAmount != null && !additionalAmount.isEmpty()
+                        ? Double.valueOf(additionalAmount)
+                        : null;
                 yield ResponseEntity.ok(electricityService.isPriceNegative(amount));
             }
         };
     }
 
     private ValidationResult validate(final String additionalAmount) {
-        var error = checkNumericParameter(additionalAmount, "additionalAmount");
-        return error.isEmpty() ? new ValidationResult.Valid() : new ValidationResult.Invalid(error);
-    }
-
-    private String checkNumericParameter(final String param, final String paramName) {
-        if (param != null && !isNumeric(param)) {
-            return paramName + " is not a number ";
-        }
-        return "";
-    }
-
-    private boolean isNumeric(final String param) {
-        try {
-            Double.parseDouble(param);
-            return true;
-        } catch (NumberFormatException _) {
-            return false;
-        }
+        var error = NumericParams.checkOptional(additionalAmount, "additionalAmount");
+        return error.isEmpty() ? new ValidationResult.Valid() : new ValidationResult.Invalid(error.trim());
     }
 }
-

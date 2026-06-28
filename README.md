@@ -17,6 +17,18 @@ To pull the Docker image from Docker Hub use this command:
 
 Once the server is running it is reachable on your host with port 3000 by default. Also if the host system crashes or reboots, the container is started automatically again.
 
+### Configuration
+
+The port on which the server is reachable can be configured using the `PORT` environment variable when using Docker Compose.
+
+To run the server on a different port (e.g., 8080):
+
+```bash
+PORT=8080 docker compose up -d
+```
+
+If no `PORT` is specified, it defaults to `3000`.
+
 ## Endpoints
 
 ### Check if electricity price is negative

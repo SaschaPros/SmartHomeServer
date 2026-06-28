@@ -12,5 +12,4 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 3000
 ENTRYPOINT ["java", "-jar", "app.jar"]

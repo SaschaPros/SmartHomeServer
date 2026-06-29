@@ -12,4 +12,7 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
+# Default container-internal port (override with SERVER_PORT). Informational only;
+# the host still has to publish this port (see docker-compose.yml / -p).
+EXPOSE 3000
 ENTRYPOINT ["java", "-jar", "app.jar"]

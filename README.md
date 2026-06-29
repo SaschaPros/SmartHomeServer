@@ -29,6 +29,14 @@ PORT=8080 docker compose up -d
 
 If no `PORT` is specified, it defaults to `3000`.
 
+> **Note on ports (important for Synology Container Manager and similar):**
+> Two separate ports are involved and they must not be confused:
+>
+> - `SERVER_PORT` controls the port Tomcat binds to **inside** the container (defaults to `3000`).
+> - `PORT` controls the **published host port** — the one you reach the server on from your network (e.g. from Home Assistant).
+>
+> Setting only `SERVER_PORT` moves Tomcat inside the container but does **not** change what the host publishes, so the endpoint becomes unreachable from outside. In the Compose file the published mapping is `${PORT}:${SERVER_PORT}`, so the container side always follows `SERVER_PORT` and the two can't drift apart. In almost all cases you only need to set `PORT`, then point Home Assistant at `http://<host-ip>:<PORT>/...`.
+
 ## Endpoints
 
 ### Check if electricity price is negative

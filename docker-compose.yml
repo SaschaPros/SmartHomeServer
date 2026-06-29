@@ -5,6 +5,10 @@ services:
     build: ./
     restart: always
     environment:
-      - SERVER_PORT=${PORT:-3000}
+      # Port Tomcat binds to *inside* the container. Rarely needs changing.
+      - SERVER_PORT=${SERVER_PORT:-3000}
     ports:
-      - ${PORT:-3000}:${PORT:-3000}
+      # <published host port>:<container port>
+      # PORT is the port you reach the server on from the network (Home Assistant etc.).
+      # The container side always follows SERVER_PORT so the two can never drift apart.
+      - ${PORT:-3000}:${SERVER_PORT:-3000}

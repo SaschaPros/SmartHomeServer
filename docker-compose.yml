@@ -6,5 +6,6 @@ services:
     restart: always
     environment:
       - SERVER_PORT=${PORT:-3000}
+      - PORT=${PORT:-3000}
     ports:
       - ${PORT:-3000}:${PORT:-3000}

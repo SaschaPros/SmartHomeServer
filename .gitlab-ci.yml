@@ -1,0 +1,46 @@
+stages:
+  - test
+  - publish
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+cache:
+  key: maven-cache
+  paths:
+    - .m2/repository
+
+test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-25-alpine
+  script:
+    - mvn test
+
+publish:
+  stage: publish
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - apk add --no-cache maven git curl
+    - 'VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)'
+    - 'echo "Project version is $VERSION"'
+    - 'docker run --privileged --rm tonistiigi/binfmt --install all'
+    - 'docker buildx create --use'
+    - 'echo "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin'
+    - 'docker buildx build --platform linux/amd64,linux/arm64 -t spro93/smarthome:latest -t "spro93/smarthome:$VERSION" --push .'
+    - 'MAJOR=$(echo $VERSION | cut -d. -f1)'
+    - 'NEW_VERSION="$((MAJOR + 1)).0.0"'
+    - 'mvn versions:set "-DnewVersion=$NEW_VERSION" -DgenerateBackupPoms=false'
+    - 'git config --global user.name "gitlab-ci[bot]"'
+    - 'git config --global user.email "gitlab-ci[bot]@users.noreply.gitlab.com"'
+    - 'AUTH_TOKEN="${GITLAB_TOKEN:-$PROJECT_ACCESS_TOKEN}"'
+    - 'git remote set-url origin "https://oauth2:${AUTH_TOKEN:-$CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"'
+    - 'git add pom.xml'
+    - 'git commit -m "chore: bump version to $NEW_VERSION [skip ci]"'
+    - 'git push origin "HEAD:$CI_COMMIT_BRANCH"'

@@ -32,7 +32,7 @@ publish:
     - 'echo "Project version is $VERSION"'
     - 'docker run --privileged --rm tonistiigi/binfmt --install all'
     - 'docker buildx create --use'
-    - 'echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin'
+    - 'echo "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin'
     - 'docker buildx build --platform linux/amd64,linux/arm64 -t spro93/smarthome:latest -t "spro93/smarthome:$VERSION" --push .'
     - 'MAJOR=$(echo $VERSION | cut -d. -f1)'
     - 'NEW_VERSION="$((MAJOR + 1)).0.0"'
